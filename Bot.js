@@ -61,6 +61,12 @@ client.on("message", msg => {
             case "aula" :
               msg.channel.send("Adicionou Aula")
               break;
+            case "prova" :
+              msg.channel.send("Adicionou Prova")
+              break;
+            case "pa" :
+              msg.channel.send("Adicionou PA")
+              break;
           }
         }
         else{
