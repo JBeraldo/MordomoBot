@@ -1,7 +1,11 @@
-const Discord = require("discord.js")
-const client = new Discord.Client()
+const Discord = require("discord.js");
+const client = new Discord.Client();
 const dotenv = require('dotenv');
 const mysql = require('mysql');
+const add = require('./Add');
+const del = require('./Del');
+const list = require('./List')
+
 function conectar(){//conection factory
   const connection = mysql.createConnection({
     host     : 'localhost',
@@ -53,19 +57,19 @@ client.on("message", msg => {
           switch (mensagem[1]) {// switch de subcomando
             case "materia" :
             case "matéria" :
-              msg.channel.send("Adicionou materia")
+              add.materia(msg);
               break;
             case "trabalho" :
-              msg.channel.send("Adicionou Trabalho")
+              add.trabalho(msg);
               break;
             case "aula" :
-              msg.channel.send("Adicionou Aula")
+              add.aula(msg);
               break;
             case "prova" :
-              msg.channel.send("Adicionou Prova")
+              add.prova(msg);
               break;
             case "pa" :
-              msg.channel.send("Adicionou PA")
+              add.pa(msg);
               break;
           }
         }
@@ -74,18 +78,41 @@ client.on("message", msg => {
         }        
         break;
       case "?del" :
-        msg.channel.send("deu certo");
+        if(mensagem[1] !== undefined){
+          switch (mensagem[1]) {// switch de subcomando
+            case "materia" :
+            case "matéria" :
+              del.materia(msg);
+              break;
+            case "trabalho" :
+              del.trabalho(msg);
+              break;
+            case "aula" :
+              del.aula(msg);
+              break;
+            case "prova" :
+              del.prova(msg);
+              break;
+            case "pa" :
+              del.pa(msg);
+              break;
+          }
+        }
+        else{//Trataemento de erro de sintaxe
+          msg.channel.send("Erro de sintaxe BURRO")
+        }  
         break;
       case "?hoje" :
-        msg.channel.send("deu certo");
+        list.hoje(msg);
         break;
       case "?semana" :
-        msg.channel.send("deu certo");
+        list.semana(msg);
         break;
     }
     
   }
-})
+}
+)
 
 
 client.login(process.env.TOKEN)
