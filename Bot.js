@@ -42,15 +42,15 @@ client.on("message", msg => {
 })
 
 client.on("message", msg => {
-  if (msg.content.startsWith("?")) {
-    let mensagem = msg.content.split(" ");
-    for (let i = 0; i < mensagem.length; i++) {
+  if (msg.content.startsWith("?")) { //Detecta se a palavra é um comando começando com ?
+    let mensagem = msg.content.split(" ");// Divide as partes do comando pelo espaço e joga num array de string
+    for (let i = 0; i < mensagem.length; i++) {// Passa tudo pra minusculo para padronizar
       mensagem[i]=mensagem[i].toLowerCase();
     }
-    switch (mensagem[0]) {
+    switch (mensagem[0]) {//switch para achar o comando equivalente
       case "?add" :
         if(mensagem[1] !== undefined){
-          switch (mensagem[1]) {
+          switch (mensagem[1]) {// switch de subcomando
             case "materia" :
             case "matéria" :
               msg.channel.send("Adicionou materia")
@@ -61,9 +61,15 @@ client.on("message", msg => {
             case "aula" :
               msg.channel.send("Adicionou Aula")
               break;
+            case "prova" :
+              msg.channel.send("Adicionou Prova")
+              break;
+            case "pa" :
+              msg.channel.send("Adicionou PA")
+              break;
           }
         }
-        else{
+        else{//Trataemento de erro de sintaxe
           msg.channel.send("Erro de sintaxe BURRO")
         }        
         break;
