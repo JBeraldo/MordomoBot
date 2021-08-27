@@ -1,38 +1,6 @@
-const Discord = require("discord.js");
-const client = new Discord.Client();
+const Discord = require('discord.js');
+const client = new Discord.Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
 const dotenv = require('dotenv');
-const mysql = require('mysql');
-const add = require('./Add');
-const del = require('./Del');
-const list = require('./List')
-
-function conectar(){//conection factory
-  const connection = mysql.createConnection({
-    host     : 'localhost',
-    user     : 'root',
-    database : 'ADS'
-  });
-  // connect to mysql
-  connection.connect(function(err) {
-    // in case of error
-      if(err){
-        console.log(err.code);
-        console.log(err.fatal);
-    }
-});
-return connection
-}
-const db=conectar(); //variavel que recebe a conexão com o MySql
-/*$query = 'CREATE TABLE teste(PersonID int)'
-db.query($query, function(err, rows, fields) {
-    if(err){
-        console.log("An error ocurred performing the query.");
-        return;
-    }
-
-    console.log("Query succesfully executed: ", rows);
-});*/
-
 dotenv.config();
 
 client.on("ready", () => {
@@ -119,6 +87,4 @@ client.on("message", msg => {
   }
 }
 )
-
-
 client.login(process.env.TOKEN)
