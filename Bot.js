@@ -1,90 +1,92 @@
-const Discord = require('discord.js');
-const client = new Discord.Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
-const dotenv = require('dotenv');
-dotenv.config();
+const {
+  Client,
+  Intents,
+  MessageActionRow,
+  MessageSelectMenu,
+  MessageComponentInteraction,
+} = require("discord.js");
+const { token } = require("./config.json");
+const client = new Client({
+  intents: [Intents.FLAGS.GUILDS ,Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
+});
+client.once("ready", () => {
+  console.log("Ready!");
+});
 
-client.on("ready", () => {
-  console.log(`Logged in as ${client.user.tag}!`)
-})
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
 
-client.on("message", msg => {
-  if (msg.content === "ping") {
-    msg.reply("pong");
+  const { commandName } = interaction;
+
+
+  if (commandName === "kill") {
+    await interaction.reply("Fechando");
+    process.exit(1);
+  } else if (commandName === "matrícular") {
+    const row = new MessageActionRow()
+      .addComponents(
+        new MessageSelectMenu()
+          .setCustomId('select')
+          .setPlaceholder('Nenhuma Matéria Selecionada')
+          .setMinValues(1)
+          .setMaxValues(4)
+          .addOptions([
+            {
+              label: 'Estrutura de dados',
+              description: 'This is a description',
+              value: '1',
+            },
+            {
+              label: 'Banco de Dados',
+              description: 'This is also a description',
+              value: '2',
+            },
+            {
+              label: 'Programação Orientada a Objetos',
+              description: 'This is a description as well',
+              value: '3',
+            },
+            {
+              label: 'Redes de Computadores',
+              description: 'This is a description as well',
+              value: '4',
+            },
+          ]),
+      );
+
+    const message = await interaction.reply({ content: 'Selecione as Matérias para matrícula', components: [row], fetchReply: true });
+    const filter = i => {
+      i.deferUpdate();
+      return i.user.id === interaction.user.id;
+    };
+
+    message.awaitMessageComponent({ filter, componentType: 'SELECT_MENU', time: 60000 })
+      .then(interaction => interaction.editReply(`You selected ${interaction.values.join(', ')}!`))
+      .catch(err => console.log());
+
   }
-})
+});
+client.on('interactionCreate', interaction => {
+  if (!interaction.isSelectMenu()) return;
+  let cargos = interaction.values;
+  const member = interaction.member
+  cargos.forEach((item) => {
+    switch (item) {
+      case '1':
+        member.roles.add('887102858200248400');
+        break;
+      case '2':
+        member.roles.add('880963942795583498');
+        break;
+      case '3':
+        member.roles.add('887106941216768011');
+        break;
+      case '4':
+        member.roles.add('887107151527563274');
+        break;
+    }
+  });
+  interaction.followUp("Cadastro executado com sucesso");
+});
 
-client.on("message", msg => {
-  if (msg.content.startsWith("?")) { //Detecta se a palavra é um comando começando com ?
-    let mensagem = msg.content.split(" ");// Divide as partes do comando pelo espaço e joga num array de string
-    for (let i = 0; i < mensagem.length; i++) {// Passa tudo pra minusculo para padronizar
-      mensagem[i]=mensagem[i].toLowerCase();
-    }
-    switch (mensagem[0]) {//switch para achar o comando equivalente
-      case "?add" :
-        if(mensagem[1] !== undefined){
-          switch (mensagem[1]) {// switch de subcomando
-            case "materia" :
-            case "matéria" :
-              add.materia(msg);
-              break;
-            case "trabalho" :
-              add.trabalho(msg);
-              break;
-            case "aula" :
-              add.aula(msg);
-              break;
-            case "prova" :
-              add.prova(msg);
-              break;
-            case "pa" :
-              add.pa(msg);
-              break;
-            case "prova" :
-              msg.channel.send("Adicionou Prova")
-              break;
-            case "pa" :
-              msg.channel.send("Adicionou PA")
-              break;
-          }
-        }
-        else{//Trataemento de erro de sintaxe
-          msg.channel.send("Erro de sintaxe BURRO")
-        }        
-        break;
-      case "?del" :
-        if(mensagem[1] !== undefined){
-          switch (mensagem[1]) {// switch de subcomando
-            case "materia" :
-            case "matéria" :
-              del.materia(msg);
-              break;
-            case "trabalho" :
-              del.trabalho(msg);
-              break;
-            case "aula" :
-              del.aula(msg);
-              break;
-            case "prova" :
-              del.prova(msg);
-              break;
-            case "pa" :
-              del.pa(msg);
-              break;
-          }
-        }
-        else{//Trataemento de erro de sintaxe
-          msg.channel.send("Erro de sintaxe BURRO")
-        }  
-        break;
-      case "?hoje" :
-        list.hoje(msg);
-        break;
-      case "?semana" :
-        list.semana(msg);
-        break;
-    }
-    
-  }
-}
-)
-client.login(process.env.TOKEN)
+client.login(token);
