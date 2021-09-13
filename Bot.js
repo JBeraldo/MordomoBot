@@ -33,22 +33,22 @@ client.on("interactionCreate", async (interaction) => {
           .addOptions([
             {
               label: 'Estrutura de dados',
-              description: 'This is a description',
+              description: 'Matéria do Segundo Periodo',
               value: '1',
             },
             {
               label: 'Banco de Dados',
-              description: 'This is also a description',
+              description: 'Matéria do Segundo Periodo',
               value: '2',
             },
             {
               label: 'Programação Orientada a Objetos',
-              description: 'This is a description as well',
+              description: 'Matéria do Segundo Periodo',
               value: '3',
             },
             {
               label: 'Redes de Computadores',
-              description: 'This is a description as well',
+              description: 'Matéria do Segundo Periodo',
               value: '4',
             },
           ]),
