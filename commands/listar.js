@@ -13,8 +13,8 @@ module.exports = {
 		option.setName('para')
 			.setDescription('Atividades para fazer em')
 			.setRequired(true)
-			.addChoice('Hoje','Prova')
-			.addChoice('Semana','Trabalho')
-			.addChoice('Mês','Atividade')
-            .addChoice('Sempre','Atividade'))
+			.addChoice('Hoje','1')
+			.addChoice('Semana','2')
+			.addChoice('Mês','3')
+            .addChoice('Sempre','4'))
     }

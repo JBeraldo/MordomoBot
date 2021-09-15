@@ -3,9 +3,6 @@ const {
   Intents,
   MessageActionRow,
   MessageSelectMenu,
-  MessageManager,
-  TextChannel,
-  Channel,
 } = require("discord.js");
 const { token } = require("./config.json");
 const client = new Client({
@@ -101,13 +98,45 @@ function comandos() {
     } else if (commandName === 'listar') {
       let channel = client.channels.cache.get('887120047141711886');
       // Get messages
-      let cargos= interaction.member.roles.member._roles
-      console.log(cargos);
-      const mensagens = await channel.messages.fetch()
-        .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
-        .catch(console.error);
+      let cargos = await interaction.member.roles.member._roles
+      let mensagens = [];
+      for (let i = 0; i < cargos.length; i++) {
+        switch (cargos[i]) {
+          case '887120046286078035':
+            channel = client.channels.cache.get('887120047141711886');
+            mensagens +=await channel.messages.fetch()
+            .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
+            .catch(console.error)
+            break
+          case '887120046286078036':
+            channel = client.channels.cache.get('887120047141711887');
+            mensagens +=await channel.messages.fetch()
+              .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
+              .catch(console.error)
+            break;
+          case '887120046286078034':
+            channel = client.channels.cache.get('887120047141711888');
+            mensagens += await channel.messages.fetch()
+              .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
+              .catch(console.error)
+            break;
+          case '887120046286078033':
+            channel = client.channels.cache.get('887120047141711889');
+            mensagens += await channel.messages.fetch()
+              .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
+              .then(messages => messages=messages.get)
+              .catch(console.error)
+            break;
+        }
+        switch(interaction.options.getString('para')){
+          case '4':
+            
+            break
+        }
+      }
 
-      //console.log(mensagens)
+
+      console.log(mensagens)
     }
 
   });
