@@ -5,9 +5,12 @@ const {
   MessageSelectMenu,
 } = require("discord.js");
 const { token } = require("./config.json");
+const fs = require('fs');
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 });
+
+
 client.once("ready", () => {
   console.log("Ready!");
 });
@@ -67,11 +70,11 @@ function comandos() {
         .catch(err => console.log());
 
     } else if (commandName === 'adicionar') {
+      let dia, mes
       const cargo = interaction.options.getRole('matéria').name
       if (interaction.member.roles.cache.some(role => role.name === interaction.options.getRole('matéria').name)) {
         let channel
         switch (cargo) {
-
           case 'Estrutura de Dados':
             channel = client.channels.cache.get('887120047141711886');
             break
@@ -85,11 +88,38 @@ function comandos() {
             channel = client.channels.cache.get('887120047141711889');
             break;
         }
-        if (interaction.options.getString('tema') === undefined || interaction.options.getString('tema') === null) {
-          channel.send('[' + interaction.options.getNumber('dia') + '/' + interaction.options.getNumber('mes') + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase());
-        } else {
-          channel.send('[' + interaction.options.getNumber('dia') + '/' + interaction.options.getNumber('mes') + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' de tema: ' + interaction.options.getString('tema'));
+        if (interaction.options.getNumber('dia') > 31 || interaction.options.getNumber('dia') < 1) {
+          dia = 0
         }
+        else{
+          dia=interaction.options.getNumber('dia')
+        }
+        if (interaction.options.getNumber('mes') > 12 || interaction.options.getNumber('mes') < 1) {
+          mes = 0
+        }
+        else{
+          mes=interaction.options.getNumber('mes')
+        }
+        let atividade = {
+          dia: dia,
+          mes: mes,
+          tipo: interaction.options.getString('tipo'),
+          materia: interaction.options.getRole('matéria').id,
+          tema: interaction.options.getString('tema'),
+          nota: interaction.options.getString('nota')
+        }
+        cadastrarAtividade(atividade)
+        if (interaction.options.getString('tema') === null && interaction.options.getString('nota') === 'false') {
+          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase());
+        } else if (interaction.options.getString('tema') !== null && interaction.options.getString('nota') === 'false') {
+          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' de tema: ' + interaction.options.getString('tema'));
+        } else if(interaction.options.getString('tema') === null && interaction.options.getString('nota') === 'true'){
+          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' valendo nota ');
+        }
+        else if(interaction.options.getString('tema') !== null && interaction.options.getString('nota') === 'true'){
+          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() +' de tema ' + interaction.options.getString('tema')+' valendo nota ');
+        }
+        
         await interaction.reply('Adicionado com Sucesso');
       }
       else {
@@ -104,13 +134,13 @@ function comandos() {
         switch (cargos[i]) {
           case '887120046286078035':
             channel = client.channels.cache.get('887120047141711886');
-            mensagens +=await channel.messages.fetch()
-            .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
-            .catch(console.error)
+            mensagens += await channel.messages.fetch()
+              .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
+              .catch(console.error)
             break
           case '887120046286078036':
             channel = client.channels.cache.get('887120047141711887');
-            mensagens +=await channel.messages.fetch()
+            mensagens += await channel.messages.fetch()
               .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
               .catch(console.error)
             break;
@@ -124,13 +154,13 @@ function comandos() {
             channel = client.channels.cache.get('887120047141711889');
             mensagens += await channel.messages.fetch()
               .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
-              .then(messages => messages=messages.get)
+              .then(messages => messages = messages.get)
               .catch(console.error)
             break;
         }
-        switch(interaction.options.getString('para')){
+        switch (interaction.options.getString('para')) {
           case '4':
-            
+
             break
         }
       }
@@ -166,6 +196,38 @@ function comandos() {
       interaction.deleteReply(interaction);
     }
 
+  });
+}
+function cadastrarAtividade(dados) {
+  // read the file
+  fs.readFile('./atividades.json', 'utf8', (err, data) => {
+    if (err) {
+      console.log(`Error reading file from disk: ${err}`);
+    } else {
+      // parse JSON string to JSON object
+
+      let atividades = JSON.parse(data)
+
+      console.log(atividades)
+      // add a new record
+      atividades.unshift({
+        dia: dados.dia,
+        mes: dados.mes,
+        tipo: dados.tipo,
+        materia: dados.materia,
+        tema: dados.tema,
+        nota: dados.nota
+      });
+      // write new data back to the file
+      atividades = atividades.filter(function (val) { return val !== null })
+      atividades = atividades.filter(function (val) { return val !== '[]' })
+      console.log(atividades)
+      fs.writeFile('./atividades.json', JSON.stringify(atividades, null, 4), (err) => {
+        if (err) {
+          console.log(`Error writing file: ${err}`);
+        }
+      });
+    }
   });
 }
 client.login(token);
