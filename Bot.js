@@ -7,6 +7,8 @@ const {
 } = require("discord.js");
 const { token } = require("./config.json");
 const fs = require('fs');
+var moment = require('moment');
+moment().utc().format()
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 });
@@ -89,62 +91,71 @@ function comandos() {
           case 'Redes de Computadores':
             channel = client.channels.cache.get('887120047141711889');
             break;
+          case 'everyone':
+            break;
+
         }
-        if (interaction.options.getNumber('dia') > 31 || interaction.options.getNumber('dia') < 1) {
-          dia = 0
+        if (channel !== undefined) {
+          if (interaction.options.getNumber('dia') > 31 || interaction.options.getNumber('dia') < 1) {
+            dia = 0
+          }
+          else {
+            dia = interaction.options.getNumber('dia')
+          }
+          if (interaction.options.getNumber('mes') > 12 || interaction.options.getNumber('mes') < 1) {
+            mes = 0
+          }
+          else {
+            mes = interaction.options.getNumber('mes')
+          }
+          let atividade = {
+            dia: dia,
+            mes: mes,
+            tipo: interaction.options.getString('tipo'),
+            materia: interaction.options.getRole('matéria').id,
+            nomeMateria: interaction.options.getRole('matéria').name,
+            tema: interaction.options.getString('tema'),
+            nota: interaction.options.getString('nota')
+          }
+          cadastrarAtividade(atividade)
+          if (interaction.options.getString('tema') === null && (interaction.options.getString('nota') === 'false' || interaction.options.getString('nota') === null)) {
+            channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase());
+          } else if (interaction.options.getString('tema') !== null && (interaction.options.getString('nota') === 'false' || interaction.options.getString('nota') === null)) {
+            channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' de tema: ' + interaction.options.getString('tema'));
+          } else if (interaction.options.getString('tema') === null && interaction.options.getString('nota') === 'true') {
+            channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' valendo nota ');
+          }
+          else if (interaction.options.getString('tema') !== null && interaction.options.getString('nota') === 'true') {
+            channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' de tema ' + interaction.options.getString('tema') + ' valendo nota ');
+          }
+          await interaction.reply(':white_check_mark: Adicionado com Sucesso');
         }
-        else {
-          dia = interaction.options.getNumber('dia')
+        else{
+          interaction.reply(':x: Você selecionou um cargo que não representa uma matéria');
         }
-        if (interaction.options.getNumber('mes') > 12 || interaction.options.getNumber('mes') < 1) {
-          mes = 0
-        }
-        else {
-          mes = interaction.options.getNumber('mes')
-        }
-        let atividade = {
-          dia: dia,
-          mes: mes,
-          tipo: interaction.options.getString('tipo'),
-          materia: interaction.options.getRole('matéria').id,
-          nomeMateria: interaction.options.getRole('matéria').name,
-          tema: interaction.options.getString('tema'),
-          nota: interaction.options.getString('nota')
-        }
-        cadastrarAtividade(atividade)
-        if (interaction.options.getString('tema') === null && (interaction.options.getString('nota') === 'false' || interaction.options.getString('nota') === null)) {
-          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase());
-        } else if (interaction.options.getString('tema') !== null && (interaction.options.getString('nota') === 'false' || interaction.options.getString('nota') === null)) {
-          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' de tema: ' + interaction.options.getString('tema'));
-        } else if (interaction.options.getString('tema') === null && interaction.options.getString('nota') === 'true') {
-          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' valendo nota ');
-        }
-        else if (interaction.options.getString('tema') !== null && interaction.options.getString('nota') === 'true') {
-          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' de tema ' + interaction.options.getString('tema') + ' valendo nota ');
-        }
-        await interaction.reply('Adicionado com Sucesso');
       }
       else {
-        interaction.reply('Você esta tentando adicionar atividades em um matéria que não esta cadastrado');
+        interaction.reply(':x: Você esta tentando adicionar atividades em um matéria que não esta cadastrado OU Selecionou um cargo que não representa uma matéria');
       }
-      } else if (commandName === 'listar') {
+    } else if (commandName === 'listar') {
       limparAtiv()
       let cargos = await interaction.member.roles.member._roles
       let obj = fs.readFileSync('./atividades.json', 'utf-8')
       let atividade = JSON.parse(obj)
-      let mensagem = ''
+      let mensagem
       let numero = 1
-      let ts = Date.now();
-      let date_ob = new Date(ts);
       switch (interaction.options.getString('para')) {
         case '1':
-          atividade = atividade.filter(atividade => ((atividade.dia === date_ob.getDate()) && (atividade.mes === date_ob.getMonth() + 1)))
+          atividade = atividade.filter(atividade => ((atividade.dia === moment().date()) && (atividade.mes === moment().month() + 1)))
+          mensagem = 'Atividades das suas disciplinas cadastradas para hoje: \n'
           break
         case '2':
-          atividade = atividade.filter(atividade => diffdatas(atividade.dia,atividade.mes)<=7)
+          atividade = atividade.filter(atividade => diffdatas(atividade.dia, atividade.mes) <= 7)
+          mensagem = 'Atividades das suas disciplinas cadastradas para semana: \n'
           break
         case '3':
-          atividade = atividade.filter(atividade => diffdatas(atividade.dia,atividade.mes)<=31)
+          atividade = atividade.filter(atividade => diffdatas(atividade.dia, atividade.mes) <= 31)
+          mensagem = 'Atividades das suas disciplinas cadastradas para o mês: \n'
           break
 
       }
@@ -191,7 +202,7 @@ function comandos() {
             break;
         }
       });
-      interaction.followUp("Cadastro executado com sucesso");
+      interaction.followUp(":white_check_mark: Cadastro executado com sucesso");
       interaction.deleteReply(interaction);
     }
 
@@ -224,31 +235,24 @@ function cadastrarAtividade(dados) {
     }
   });
 }
-function diffdatas(dia,mes) {
-  let ts = Date.now();
-  let date_ob = new Date(ts);
-  let date = date_ob.getDate();
-  let RealData = (date + "/" + date_ob.getMonth())
-  let AtivData =(dia+"/"+mes)
-  var diffDays = parseInt((AtivData - RealData) / (1000 * 60 * 60 * 24)); //gives day difference 
-  console.log(diffDays)
-  return(diffDays)
-  //one_day means 1000*60*60*24
-  //one_hour means 1000*60*60
-  //one_minute means 1000*60
-  //one_second means 1000
+function diffdatas(dia, mes) {
+  const realData = moment()
+  const ativData = moment(dia + '-' + mes + '-' + moment().year(), "DD-MM-YYYY")
+  const diffDias = ativData.diff(realData, 'days') // 1
+  console.log(diffDias)
+  return (diffDias)
 }
-function limparAtiv(){
+function limparAtiv() {
   let ts = Date.now();
   let date_ob = new Date(ts);
   fs.readFile('./atividades.json', 'utf8', (err, data) => {
-  let atividades =JSON.parse(data)
-  atividades=atividades.filter(atividades => ((atividades.dia>=date_ob.getDate()) && (atividades.mes>date_ob.getMonth()+1))||(atividades.dia<=date_ob.getDate()) && (atividades.mes>=date_ob.getMonth()+1));
-  fs.writeFile('./atividades.json', JSON.stringify(atividades, null, 4), (err) => {
-    if (err) {
-      console.log(`Error writing file: ${err}`);
-    }
-  });
-})
+    let atividades = JSON.parse(data)
+    atividades = atividades.filter(atividades => ((atividades.dia >= date_ob.getDate()) && (atividades.mes >= date_ob.getMonth() + (1 * 1))) || (atividades.dia <= date_ob.getDate()) && (atividades.mes > date_ob.getMonth() + (1 * 1)));
+    fs.writeFile('./atividades.json', JSON.stringify(atividades, null, 4), (err) => {
+      if (err) {
+        console.log(`Error writing file: ${err}`);
+      }
+    });
+  })
 }
 client.login(token);
