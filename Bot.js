@@ -3,6 +3,7 @@ const {
   Intents,
   MessageActionRow,
   MessageSelectMenu,
+  MessageManager,
 } = require("discord.js");
 const { token } = require("./config.json");
 const fs = require('fs');
@@ -19,6 +20,7 @@ comandos();
 function comandos() {
   let name
   client.on("interactionCreate", async (interaction) => {
+    limparAtiv()
     if (!interaction.isCommand()) return;
 
     const { commandName } = interaction;
@@ -27,7 +29,7 @@ function comandos() {
     if (commandName === "kill") {
       await interaction.reply("Fechando");
       process.exit(1);
-    } else if (commandName === "matrícular") {
+    } else if (commandName === "matricular") {
       const row = new MessageActionRow()
         .addComponents(
           new MessageSelectMenu()
@@ -91,89 +93,86 @@ function comandos() {
         if (interaction.options.getNumber('dia') > 31 || interaction.options.getNumber('dia') < 1) {
           dia = 0
         }
-        else{
-          dia=interaction.options.getNumber('dia')
+        else {
+          dia = interaction.options.getNumber('dia')
         }
         if (interaction.options.getNumber('mes') > 12 || interaction.options.getNumber('mes') < 1) {
           mes = 0
         }
-        else{
-          mes=interaction.options.getNumber('mes')
+        else {
+          mes = interaction.options.getNumber('mes')
         }
         let atividade = {
           dia: dia,
           mes: mes,
           tipo: interaction.options.getString('tipo'),
           materia: interaction.options.getRole('matéria').id,
+          nomeMateria: interaction.options.getRole('matéria').name,
           tema: interaction.options.getString('tema'),
           nota: interaction.options.getString('nota')
         }
         cadastrarAtividade(atividade)
-        if (interaction.options.getString('tema') === null && interaction.options.getString('nota') === 'false') {
+        if (interaction.options.getString('tema') === null && (interaction.options.getString('nota') === 'false' || interaction.options.getString('nota') === null)) {
           channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase());
-        } else if (interaction.options.getString('tema') !== null && interaction.options.getString('nota') === 'false') {
+        } else if (interaction.options.getString('tema') !== null && (interaction.options.getString('nota') === 'false' || interaction.options.getString('nota') === null)) {
           channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' de tema: ' + interaction.options.getString('tema'));
-        } else if(interaction.options.getString('tema') === null && interaction.options.getString('nota') === 'true'){
+        } else if (interaction.options.getString('tema') === null && interaction.options.getString('nota') === 'true') {
           channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' valendo nota ');
         }
-        else if(interaction.options.getString('tema') !== null && interaction.options.getString('nota') === 'true'){
-          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() +' de tema ' + interaction.options.getString('tema')+' valendo nota ');
+        else if (interaction.options.getString('tema') !== null && interaction.options.getString('nota') === 'true') {
+          channel.send('[' + dia + '/' + mes + '] ' + interaction.options.getString('tipo') + ' de ' + interaction.options.getRole('matéria').name.toLowerCase() + ' de tema ' + interaction.options.getString('tema') + ' valendo nota ');
         }
-        
         await interaction.reply('Adicionado com Sucesso');
       }
       else {
         interaction.reply('Você esta tentando adicionar atividades em um matéria que não esta cadastrado');
       }
-    } else if (commandName === 'listar') {
-      let channel = client.channels.cache.get('887120047141711886');
-      // Get messages
+      } else if (commandName === 'listar') {
+      limparAtiv()
       let cargos = await interaction.member.roles.member._roles
-      let mensagens = [];
-      for (let i = 0; i < cargos.length; i++) {
-        switch (cargos[i]) {
-          case '887120046286078035':
-            channel = client.channels.cache.get('887120047141711886');
-            mensagens += await channel.messages.fetch()
-              .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
-              .catch(console.error)
-            break
-          case '887120046286078036':
-            channel = client.channels.cache.get('887120047141711887');
-            mensagens += await channel.messages.fetch()
-              .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
-              .catch(console.error)
-            break;
-          case '887120046286078034':
-            channel = client.channels.cache.get('887120047141711888');
-            mensagens += await channel.messages.fetch()
-              .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
-              .catch(console.error)
-            break;
-          case '887120046286078033':
-            channel = client.channels.cache.get('887120047141711889');
-            mensagens += await channel.messages.fetch()
-              .then(messages => messages = messages.find(message => message.author.username === 'Mordomo'))
-              .then(messages => messages = messages.get)
-              .catch(console.error)
-            break;
-        }
-        switch (interaction.options.getString('para')) {
-          case '4':
+      let obj = fs.readFileSync('./atividades.json', 'utf-8')
+      let atividade = JSON.parse(obj)
+      let mensagem = ''
+      let numero = 1
+      let ts = Date.now();
+      let date_ob = new Date(ts);
+      switch (interaction.options.getString('para')) {
+        case '1':
+          atividade = atividade.filter(atividade => ((atividade.dia === date_ob.getDate()) && (atividade.mes === date_ob.getMonth() + 1)))
+          break
+        case '2':
+          atividade = atividade.filter(atividade => diffdatas(atividade.dia,atividade.mes)<=7)
+          break
+        case '3':
+          atividade = atividade.filter(atividade => diffdatas(atividade.dia,atividade.mes)<=31)
+          break
 
-            break
-        }
       }
-
-
-      console.log(mensagens)
+      atividade.forEach((item) => {
+        if (cargos.includes(item.materia)) {
+          let linha = numero + ".[" + item.dia + "/" + item.mes + "] " + item.tipo + " de " + item.nomeMateria
+          if (item.tema !== null) {
+            linha.concat(" de tema" + item.tema)
+          }
+          if (item.nota !== null) {
+            linha.concat(', valendo nota')
+          }
+          linha = linha.concat('\n')
+          mensagem = mensagem.concat(linha)
+          numero++
+        }
+      })
+      if (mensagem.length !== 0) {
+        interaction.reply(mensagem)
+      }
+      else {
+        interaction.reply('Não há nenhuma atividade cadastrada para suas materias neste periodo de tempo')
+      }
     }
-
   });
-
   client.on('interactionCreate', interaction => {
     if (!interaction.isSelectMenu()) return;
-    if (name === 'matrícular') {
+    if (name === 'matricular') {
       let cargos = interaction.values;
       const member = interaction.member
       cargos.forEach((item) => {
@@ -204,24 +203,19 @@ function cadastrarAtividade(dados) {
     if (err) {
       console.log(`Error reading file from disk: ${err}`);
     } else {
-      // parse JSON string to JSON object
-
       let atividades = JSON.parse(data)
-
-      console.log(atividades)
-      // add a new record
       atividades.unshift({
         dia: dados.dia,
         mes: dados.mes,
         tipo: dados.tipo,
         materia: dados.materia,
+        nomeMateria: dados.nomeMateria,
         tema: dados.tema,
         nota: dados.nota
       });
       // write new data back to the file
       atividades = atividades.filter(function (val) { return val !== null })
       atividades = atividades.filter(function (val) { return val !== '[]' })
-      console.log(atividades)
       fs.writeFile('./atividades.json', JSON.stringify(atividades, null, 4), (err) => {
         if (err) {
           console.log(`Error writing file: ${err}`);
@@ -229,5 +223,32 @@ function cadastrarAtividade(dados) {
       });
     }
   });
+}
+function diffdatas(dia,mes) {
+  let ts = Date.now();
+  let date_ob = new Date(ts);
+  let date = date_ob.getDate();
+  let RealData = (date + "/" + date_ob.getMonth())
+  let AtivData =(dia+"/"+mes)
+  var diffDays = parseInt((AtivData - RealData) / (1000 * 60 * 60 * 24)); //gives day difference 
+  console.log(diffDays)
+  return(diffDays)
+  //one_day means 1000*60*60*24
+  //one_hour means 1000*60*60
+  //one_minute means 1000*60
+  //one_second means 1000
+}
+function limparAtiv(){
+  let ts = Date.now();
+  let date_ob = new Date(ts);
+  fs.readFile('./atividades.json', 'utf8', (err, data) => {
+  let atividades =JSON.parse(data)
+  atividades=atividades.filter(atividades => ((atividades.dia>=date_ob.getDate()) && (atividades.mes>date_ob.getMonth()+1))||(atividades.dia<=date_ob.getDate()) && (atividades.mes>=date_ob.getMonth()+1));
+  fs.writeFile('./atividades.json', JSON.stringify(atividades, null, 4), (err) => {
+    if (err) {
+      console.log(`Error writing file: ${err}`);
+    }
+  });
+})
 }
 client.login(token);
