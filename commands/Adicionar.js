@@ -20,5 +20,4 @@ module.exports = {
     .addNumberOption(option => option.setName('dia').setDescription('Dia da atividade').setRequired(true))
     .addNumberOption(option => option.setName('mes').setDescription('Mês da atividade').setRequired(true))
     .addStringOption(option => option.setName('tema').setDescription('O que será cobrado na atividade'))
-	.addStringOption(option => option.setName('nota').setDescription('vale nota?').addChoice('Sim','true').addChoice('Não','false'))
 };
