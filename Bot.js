@@ -7,6 +7,14 @@ const {
 } = require("discord.js")
 const { token } = require("./config.json")
 const fs = require('fs')
+const schedule = require('node-schedule')
+let rule = new schedule.RecurrenceRule();
+rule.dayOfWeek = [0, new schedule.Range(1, 6)];
+rule.hour = 0;
+rule.minute = 0;
+schedule.scheduleJob(rule, function () {
+  limparAtiv()
+});
 var moment = require('moment')
 moment().utc().format()
 const client = new Client({
@@ -22,7 +30,6 @@ comandos()
 function comandos() {
   let name
   client.on("interactionCreate", async (interaction) => {
-    limparAtiv()
     if (!interaction.isCommand()) return
 
     const { commandName } = interaction
@@ -76,87 +83,96 @@ function comandos() {
 
     } else if (commandName === 'adicionar') {
       let dia, mes
-      console.log(verificarCargo(interaction.options.getRole('matéria').id))
-      if ((verificarCargo(interaction.options.getRole('matéria').id)) !== false) {
-        console.log('Passou normal')
-        if (interaction.member.roles.cache.some(role => role.name === interaction.options.getRole('matéria').name)) {
-          if (interaction.options.getNumber('dia') > 31 || interaction.options.getNumber('dia') < 1) {
-            dia = 0
-          }
-          else {
-            dia = interaction.options.getNumber('dia')
-          }
-          if (interaction.options.getNumber('mes') > 12 || interaction.options.getNumber('mes') < 1) {
-            mes = 0
-          }
-          else {
-            mes = interaction.options.getNumber('mes')
-          }
-          let atividade = {
-            dia: dia,
-            mes: mes,
-            tipo: interaction.options.getString('tipo'),
-            materia: interaction.options.getRole('matéria').id,
-            nomeMateria: interaction.options.getRole('matéria').name,
-            tema: interaction.options.getString('tema'),
-          }
-          cadastrarAtividade(atividade)
-          if (interaction.options.getString('tema') === null) {
-            const tema = 'Não cadastrado'
+      if (diffdatas(interaction.options.getNumber("dia"), interaction.options.getNumber("mes")) >= 0) {
+        if ((verificarCargo(interaction.options.getRole('matéria').id)) !== false) {
+          if (interaction.member.roles.cache.some(role => role.name === interaction.options.getRole('matéria').name)) {
+            if (interaction.options.getNumber('dia') > 31 || interaction.options.getNumber('dia') < 1) {
+              dia = 0
+            }
+            else {
+              dia = interaction.options.getNumber('dia')
+            }
+            if (interaction.options.getNumber('mes') > 12 || interaction.options.getNumber('mes') < 1) {
+              mes = 0
+            }
+            else {
+              mes = interaction.options.getNumber('mes')
+            }
+            let atividade = {
+              dia: dia,
+              mes: mes,
+              tipo: interaction.options.getString('tipo'),
+              materia: interaction.options.getRole('matéria').id,
+              nomeMateria: interaction.options.getRole('matéria').name,
+              tema: interaction.options.getString('tema'),
+            }
+            let i = 0
+            while (i < 25) {
+              cadastrarAtividade(atividade)
+              i++
+            }
+            if (interaction.options.getString('tema') === null) {
+              const tema = 'Não cadastrado'
+              const anexo = new MessageEmbed()
+                .setColor(cor)
+                .setTitle(':white_check_mark: Adicionado com Sucesso')
+                .setAuthor('Adicionar', avatar)
+                .setThumbnail(avatar)
+                .addFields(
+                  { name: 'Tipo', value: interaction.options.getString('tipo') },
+                  { name: 'Matéria', value: interaction.options.getRole('matéria').name, inline: true },
+                  { name: 'Prazo', value: dia + "/" + mes, inline: true },
+                  { name: 'Tema', value: tema, inline: true },
+                )
+                .setImage(retornaGif())
+              interaction.reply({ content: "||" + "<@&" + interaction.options.getRole('matéria') + ">||", embeds: [anexo] })
+            } else if (interaction.options.getString('tema') !== null) {
+              const tema = interaction.options.getString('tema')
+              const anexo = new MessageEmbed()
+                .setColor(cor)
+                .setTitle(':white_check_mark: Adicionado com Sucesso')
+                .setAuthor('Adicionar', avatar)
+                .setThumbnail(avatar)
+                .addFields(
+                  { name: 'Tipo', value: interaction.options.getString('tipo') },
+                  { name: 'Matéria', value: interaction.options.getRole('matéria').name, inline: true },
+                  { name: 'Prazo', value: dia + "/" + mes, inline: true },
+                  { name: 'Tema', value: tema, inline: true },
+                )
+                .setImage(retornaGif())
+              interaction.reply({ embeds: [anexo] })
+            }
+
+          } else {
             const anexo = new MessageEmbed()
               .setColor(cor)
-              .setTitle(':white_check_mark: Adicionado com Sucesso')
+              .setTitle(':no_entry: Você esta tentando adicionar uma atividade em uma matéria que não esta cadastrado')
               .setAuthor('Adicionar', avatar)
-              .setThumbnail(avatar)
-              .addFields(
-                { name: 'Tipo', value: interaction.options.getString('tipo') },
-                { name: 'Matéria', value: interaction.options.getRole('matéria').name, inline: true },
-                { name: 'Prazo', value: dia + "/" + mes, inline: true },
-                { name: 'Tema', value: tema, inline: true },
-              )
-              .setImage(retornaGif())
-            interaction.reply({ content: "||" + "<@&" + interaction.options.getRole('matéria') + ">||", embeds: [anexo] })
-          } else if (interaction.options.getString('tema') !== null) {
-            const tema = interaction.options.getString('tema')
-            const anexo = new MessageEmbed()
-              .setColor(cor)
-              .setTitle(':white_check_mark: Adicionado com Sucesso')
-              .setAuthor('Adicionar', avatar)
-              .setThumbnail(avatar)
-              .addFields(
-                { name: 'Tipo', value: interaction.options.getString('tipo') },
-                { name: 'Matéria', value: interaction.options.getRole('matéria').name, inline: true },
-                { name: 'Prazo', value: dia + "/" + mes, inline: true },
-                { name: 'Tema', value: tema, inline: true },
-              )
-              .setImage('https://media.giphy.com/media/gX8F8kMRTx44M/giphy.gif')
+              .setDescription('Pera lá camarada')
+              .setImage('https://media.giphy.com/media/njYrp176NQsHS/giphy.gif')
             interaction.reply({ embeds: [anexo] })
           }
 
         } else {
-          console.log('Passou else1')
           const anexo = new MessageEmbed()
             .setColor(cor)
-            .setTitle(':x: Você esta tentando adicionar uma atividade em uma matéria que não esta cadastrado')
+            .setTitle(':x: ' + interaction.options.getRole('matéria').name + ' não é uma matéria')
             .setAuthor('Adicionar', avatar)
-            .setDescription('Pera lá camarada')
-            .setImage('https://media.giphy.com/media/njYrp176NQsHS/giphy.gif')
+            .setDescription('Se acha que isto é um erro cadastre o cargo como matéria com /addmateria')
+            .setImage('https://media.giphy.com/media/l46CyJmS9KUbokzsI/giphy.gif')
           interaction.reply({ embeds: [anexo] })
         }
-
       } else {
-        console.log('Passou else2')
         const anexo = new MessageEmbed()
-          .setColor(cor)
-          .setTitle(':x: ' + interaction.options.getRole('matéria').name + ' não é uma matéria')
-          .setAuthor('Adicionar', avatar)
-          .setDescription('Se acha que isto é um erro cadastre o cargo como matéria com /addmateria')
-          .setImage('https://media.giphy.com/media/l46CyJmS9KUbokzsI/giphy.gif')
-        interaction.reply({ embeds: [anexo] })
+            .setColor(cor)
+            .setTitle(':x: Você está tentando adicionar uma atividade que ja passou')
+            .setAuthor('Adicionar', avatar)
+            .setThumbnail('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse4.mm.bing.net%2Fth%3Fid%3DOIP.lfr4LvAHdujI4L5Ei6sY5QHaJ4%26pid%3DApi&f=1')
+            .setDescription('Mc......McFly?')
+            .setImage('https://media.giphy.com/media/xsF1FSDbjguis/giphy.gif')
+          interaction.reply({ embeds: [anexo] })
       }
     } else if (commandName === 'listar') {
-      limparAtiv()
-      console.log('passou')
       let cargos = await interaction.member.roles.member._roles
       let obj = fs.readFileSync('./atividades.json', 'utf-8')
       let atividade = JSON.parse(obj)
@@ -204,7 +220,6 @@ function comandos() {
             { name: 'Atividades', value: mensagem, inline: true },
             { name: 'Dias restantes', value: Deadline, inline: true },
           );
-        console.log('passou')
         interaction.reply({ embeds: [anexo] })
       }
       else {
@@ -249,29 +264,18 @@ function verificarCargo(cargo) {
 }
 function cadastrarAtividade(dados) {
   // read the file
-  fs.readFile('./atividades.json', 'utf8', (err, data) => {
-    if (err) {
-      console.log(`Error reading file from disk: ${err}`)
-    } else {
-      let atividades = JSON.parse(data)
-      atividades.unshift({
-        dia: dados.dia,
-        mes: dados.mes,
-        tipo: dados.tipo,
-        materia: dados.materia,
-        nomeMateria: dados.nomeMateria,
-        tema: dados.tema,
-      })
-      // write new data back to the file
-      atividades = atividades.filter(function (val) { return val !== null })
-      atividades = atividades.filter(function (val) { return val !== '[]' })
-      fs.writeFile('./atividades.json', JSON.stringify(atividades, null, 4), (err) => {
-        if (err) {
-          console.log(`Error writing file: ${err}`)
-        }
-      })
-    }
+  let data = fs.readFileSync('./atividades.json', 'utf8')
+  let atividades = JSON.parse(data)
+  atividades.push({
+    dia: dados.dia,
+    mes: dados.mes,
+    tipo: dados.tipo,
+    materia: dados.materia,
+    nomeMateria: dados.nomeMateria,
+    tema: dados.tema,
   })
+  // write new data back to the file
+  fs.writeFileSync('./atividades.json', JSON.stringify(atividades, null, 6))
 }
 function cadastrarMateria(dados) {
   fs.readFile('./materias.json', 'utf8', (err, data) => {
@@ -279,15 +283,13 @@ function cadastrarMateria(dados) {
       console.log(`Error reading file from disk: ${err}`)
     } else {
       let materias = JSON.parse(data)
-      materias.unshift({
+      materias.push({
         label: dados.label,
         description: dados.description,
         value: dados.value
       })
       // write new data back to the file
-      materias = materias.filter(function (val) { return val !== null })
-      materias = materias.filter(function (val) { return val !== '[]' })
-      fs.writeFile('./materias.json', JSON.stringify(materias, null, 4), (err) => {
+      fs.writeFile('./materias.json', JSON.stringify(materias, null, 6), (err) => {
         if (err) {
           console.log(`Error writing file: ${err}`)
         }
@@ -304,18 +306,15 @@ function diffdatas(dia, mes) {
 function limparAtiv() {
   let ts = Date.now()
   let date_ob = new Date(ts)
-  fs.readFile('./atividades.json', 'utf8', (err, data) => {
-    let atividades = JSON.parse(data)
-    atividades = atividades.filter(atividades => ((atividades.dia >= date_ob.getDate()) && (atividades.mes >= date_ob.getMonth() + (1 * 1))) || (atividades.dia <= date_ob.getDate()) && (atividades.mes > date_ob.getMonth() + (1 * 1)))
-    fs.writeFile('./atividades.json', JSON.stringify(atividades, null, 4), (err) => {
-      if (err) {
-        console.log(`Error writing file: ${err}`)
-      }
-    })
-  })
+  let data = fs.readFileSync('./atividades.json', { encoding: 'utf8' })
+  let atividades = JSON.parse(data)
+  atividades = atividades.filter(atividades => ((atividades.dia >= date_ob.getDate()) && (atividades.mes >= date_ob.getMonth() + (1 * 1))) || (atividades.dia <= date_ob.getDate()) && (atividades.mes > date_ob.getMonth() + (1 * 1)))
+  fs.writeFileSync("./atividades.json", JSON.stringify(atividades, null, 4))
 }
 function retornaGif() {
-  switch (moment().day()) {
+  let teste = 3
+  //teste=moment().day()
+  switch (teste) {
     case 0:
       break;
     case 1:
@@ -323,12 +322,12 @@ function retornaGif() {
     case 2:
       break;
     case 3:
-      let valor = Math.random() < 0.5;
+      let valor = Math.random() < 0.6;
       if (valor === true) {
-        return ("data:image/jpeg;base64,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")
+        return ("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.ytimg.com%2Fvi%2FZbVPdx-Jcbc%2Fmaxresdefault.jpg&f=1&nofb=1")
       }
-      else{
-        return('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtI1IuQMymzJWRGj6AbUUSj42SPTdyGXT2AA&usqp=CAU')
+      else {
+        return ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtI1IuQMymzJWRGj6AbUUSj42SPTdyGXT2AA&usqp=CAU')
       }
       break;
     case 4:
