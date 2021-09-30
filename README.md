@@ -9,5 +9,5 @@ Bot desenvolvido para discord em Javascript para estudo, tal Bot permite a geren
 - modulo discord.js
 - Config.json(Com guildID,Token,ClientID)
 ## Instruções
-<p>Como a ideia e cada servidor ter sua lista de atividades próprias é necessario hostear o Bot antes de adicionalo no servidor em si, para isso precisamos de algum codigos para que ele funcione, pra isso é necessario certa intervenção no arquivo config.json</p>
+<p>Como a ideia e cada servidor ter sua lista de atividades próprias é necessario hostear o Bot antes de adiciona-lo no servidor em si, precisamos de algum codigos para que ele funcione, pra isso é necessario certa intervenção no arquivo config.json</p>
 <br>
