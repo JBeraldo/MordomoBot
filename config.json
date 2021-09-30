@@ -1,0 +1,5 @@
+{
+	"clientId": "<id do Cliente do discord>",
+	"guildId": "<Id do Servidor>",
+	"token": "<Seu Token>"
+}
