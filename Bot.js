@@ -5,6 +5,7 @@ const {
   MessageSelectMenu,
   MessageEmbed,
   Guild,
+  Interaction,
 } = require("discord.js")
 const { guildId } = require("./config.json")
 const { token } = require("./config.json")
@@ -37,21 +38,30 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.reply("Fechando")
     process.exit(1)
   } else if (commandName === 'addmateria') {
-    const guild = client.guilds.cache.get(guildId)
-    await guild.roles.create({ name: interaction.options.getString('matéria') });
-    let role= await guild.roles.cache.find(role => role.name === interaction.options.getString('matéria'))
-    let dados={
-      label: interaction.options.getString('matéria'),
-      description: '',
-      value: role.id,
+    if(verificarCargo(interaction.options.getString('matéria'))===false){
+      const guild = client.guilds.cache.get(guildId)
+      await guild.roles.create({ name: interaction.options.getString('matéria') });
+      let role = await guild.roles.cache.find(role => role.name === interaction.options.getString('matéria'))
+      let dados = {
+        label: interaction.options.getString('matéria'),
+        description: '',
+        value: role.id,
+      }
+      const anexo = new MessageEmbed()
+        .setColor(cor)
+        .setTitle(':white_check_mark: ' + dados.label + ' foi cadastrada')
+        .setAuthor('Adicionar Matéria', avatar)
+        .setImage('https://media.giphy.com/media/8xgqLTTgWqHWU/giphy.gif')
+      interaction.reply({ embeds: [anexo] })
+      cadastrarMateria(dados)
+    }else{
+      const anexo = new MessageEmbed()
+        .setColor(cor)
+        .setTitle(':x: ' + interaction.options.getString("matéria") + ' Já existe')
+        .setAuthor('Adicionar Matéria', avatar)
+        .setImage('https://media.giphy.com/media/bcrOR2stk6tKIxqPOZ/giphy.gif')
+      interaction.reply({ embeds: [anexo] })
     }
-    const anexo = new MessageEmbed()
-    .setColor(cor)
-    .setTitle(':white_check_mark: ' + dados.label + ' foi cadastrada')
-    .setAuthor('Adicionar Matéria', avatar)
-    .setImage('https://media.giphy.com/media/8xgqLTTgWqHWU/giphy.gif')
-    interaction.reply({embeds:[anexo]})
-    cadastrarMateria(dados)
   } else if (commandName === "matricular") {
     const collector = interaction.channel.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 7500 });
     let materias = retornaJSON(1)
@@ -93,7 +103,7 @@ client.on("interactionCreate", async (interaction) => {
   } else if (commandName === 'adicionar') {
     let dia, mes
     if (diffdatas(interaction.options.getNumber("dia"), interaction.options.getNumber("mes")) >= 0) {
-      if ((verificarCargo(interaction.options.getRole('matéria').id)) !== false) {
+      if ((verificarCargo(interaction.options.getRole('matéria').name)) !== false) {
         if (interaction.member.roles.cache.some(role => role.name === interaction.options.getRole('matéria').name)) {
           if (interaction.options.getNumber('dia') > 31 || interaction.options.getNumber('dia') < 1) {
             dia = 0
@@ -295,7 +305,7 @@ client.on("interactionCreate", async (interaction) => {
           const role = guild.roles.cache.find(role => role.id === item);
           index = (materias.findIndex(materias => materias.value === item))
           materias.splice(index, 1)
-          atividades=atividades.filter(atividades => atividades.nomeMateria!==role.name)
+          atividades = atividades.filter(atividades => atividades.nomeMateria !== role.name)
           role.delete();
         })
         fs.writeFileSync('./materias.json', JSON.stringify(materias, null, 6))
@@ -310,7 +320,7 @@ function verificarCargo(cargo) {
   let materias = JSON.parse(obj)
   let jaExiste = false
   materias.forEach((item) => {
-    if (item.value === cargo) {
+    if (item.label === cargo) {
       jaExiste = true
     };
   });
