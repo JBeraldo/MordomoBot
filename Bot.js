@@ -442,6 +442,7 @@ function retornaJSON(op) {
   }
 }
 function retornaGif() {
+  //sim eu fiz uma função só pra retornar um gif dependendo do dia da semana, as vezes não e sobre funcionalidade e sim diversão
   switch (moment().day()) {
     case 0:
       return ('https://media.giphy.com/media/jUnAWY4Ti2ypWE8LaW/giphy.gif')
