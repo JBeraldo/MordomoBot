@@ -309,6 +309,7 @@ client.on("interactionCreate", async (interaction) => {
           role.delete();
         })
         fs.writeFileSync('./materias.json', JSON.stringify(materias, null, 6))
+        fs.writeFileSync('./atividades.json', JSON.stringify(atividades, null, 6))
       });
     }
   }
