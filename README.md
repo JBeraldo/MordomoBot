@@ -3,10 +3,10 @@
 ![node-current](https://img.shields.io/node/v/discord.js)
 [![GitHub license](https://img.shields.io/github/license/JBeraldo/MordomoBot)](https://github.com/JBeraldo/MordomoBot/blob/main/LICENSE)
 # MordomoBot
-Bot desenvolvido para discord em Javascript para estudo, tal Bot permite a gerencia de atividades e matérias relativas a uma Faculdade/Escola, podendo ser hosteado localmente sem a nescessidade de um SGBD 
+Bot desenvolvido para discord em Javascript com intuito de aprendizado em Js,O Bot permite a gerencia de atividades e matérias relativas a uma Faculdade/Escola, podendo ser hosteado localmente sem a nescessidade de um SGBD 
 ## Requisitos
 - Node 16.6 ou Maior
-- modulo discord.js
+- modulo Discord.js
 - Config.json(Com guildID,Token,ClientID)
 ## Instruções
 <p>Como a ideia e cada servidor ter sua lista de atividades próprias é necessario hostear o Bot antes de adiciona-lo no servidor em si, precisamos de algum codigos para que ele funcione, pra isso é necessario certa intervenção no arquivo config.json</p>
